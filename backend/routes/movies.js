@@ -1,5 +1,5 @@
 import express from 'express';
-import axios from 'axios';
+// import axios from 'axios';
 import cors from 'cors';
 import { appDataSource } from '../datasource.js';
 import Movie from '../entities/movies.js';
@@ -77,7 +77,7 @@ router.get('/:id', async (req, res) => {
 router.use(cors()); // 🔥 Autorise toutes les requêtes cross-origin
 router.use(express.json()); // Permet de lire le JSON envoyé dans le body
 
-router.post('/movies', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const movieRepository = appDataSource.getRepository(Movie);
 
