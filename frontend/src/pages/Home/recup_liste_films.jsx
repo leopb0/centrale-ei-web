@@ -1,28 +1,29 @@
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
-export function useFetchFilms() {
+// On ajoute 'searchTerm' comme paramètre. S'il est vide, on charge tout.
+export function useFetchFilms(searchTerm = '') {
   const [movies, setMovies] = useState([]);
+
   useEffect(() => {
-    console.log('test');
+    // On construit l'URL vers VOTRE backend
+    // Si searchTerm contient du texte, on l'ajoute à l'URL
+    const url = searchTerm
+      ? `http://localhost:8000/movies?name=${searchTerm}`
+      : `http://localhost:8000/movies`;
+
     axios
-      .get(`http://localhost:8000/movies`, {
-        headers: {
-          Authorization:
-            'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxZjlmNjAwMzY4MzMzODNkNGIwYjNhNzJiODA3MzdjNCIsInN1YiI6IjY0NzA5YmE4YzVhZGE1MDBkZWU2ZTMxMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Em7Y9fSW94J91rbuKFjDWxmpWaQzTitxRKNdQ5Lh2Eo',
-          accept: 'application/json',
-        },
-      })
+      .get(url)
       .then((response) => {
-        // Do something if call succeeded
-        console.log('Données reçues :', response.data);
+        // 💡 Attention : contrairement à TMDB, votre backend renvoie
+        // directement le tableau, donc c'est response.data (et non response.data.results)
+        console.log('Données reçues de mon backend :', response.data);
         setMovies(response.data);
       })
       .catch((error) => {
-        // Do something if call failed
-        console.log(error);
+        console.error('Erreur lors de la récupération des films :', error);
       });
-  }, []);
+  }, [searchTerm]); // Le hook se relancera automatiquement si le terme de recherche change
 
   return { movies };
 }
