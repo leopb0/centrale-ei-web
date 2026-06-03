@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import logo from './logo.svg';
 import './Home.css';
 import { useFetchFilms } from './recup_liste_films';
@@ -10,29 +10,27 @@ function Home() {
   const [sorting_criterion, SetSorting_criterion] = useState('popularity');
 
   const UpdateSortedMovies = () => {
-      SetSorting_criterion(document.getElementById('film-criterion').value);
-  }
+    SetSorting_criterion(document.getElementById('film-criterion').value);
+  };
 
   const getSortedMovies = () => {
-      let sorting_function;
-      if (sorting_criterion === 'popularity') {
-      sorting_function = (a, b) => b.popularity - a.popularity;//needs to be changed
-      }
-      else if (sorting_criterion === 'release_date') {
-        sorting_function = (a, b) => new Date(b.releaseYear) - new Date(a.releaseYear);
-      }
-      else if (sorting_criterion === 'rating') {
-        sorting_function = (a, b) => b.rating - a.rating;
-      }
-      else if (sorting_criterion === 'alphabetical') {
-        sorting_function = (a, b) => a.name.localeCompare(b.name);
-      }
-      else if (sorting_criterion === 'duration') {
-        sorting_function = (a, b) => b.duration - a.duration;
-      }
-      return [...movies].sort(sorting_function);
-  }
-  
+    let sorting_function;
+    if (sorting_criterion === 'popularity') {
+      sorting_function = (a, b) => b.popularity - a.popularity; //needs to be changed
+    } else if (sorting_criterion === 'release_date') {
+      sorting_function = (a, b) =>
+        new Date(b.releaseYear) - new Date(a.releaseYear);
+    } else if (sorting_criterion === 'rating') {
+      sorting_function = (a, b) => b.rating - a.rating;
+    } else if (sorting_criterion === 'alphabetical') {
+      sorting_function = (a, b) => a.name.localeCompare(b.name);
+    } else if (sorting_criterion === 'duration') {
+      sorting_function = (a, b) => b.duration - a.duration;
+    }
+
+    return [...movies].sort(sorting_function);
+  };
+
   // 2. L'état pour le mot-clé validé (quand on clique sur le bouton)
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -41,16 +39,34 @@ function Home() {
 
   // 4. La fonction déclenchée par le clic sur le bouton
   const lancerRecherche = () => {
-    console.log("🚨 BOUTON CLIQUÉ ! Lancement de la recherche pour :", Film);
+    console.log('🚨 BOUTON CLIQUÉ ! Lancement de la recherche pour :', Film);
     setSearchTerm(Film);
   };
-  const liste_films = getSortedMovies().map((movie) => <Movie key={movie.id} data={movie} />);
+  const liste_films = getSortedMovies().map((movie) => (
+    <Movie key={movie.id} data={movie} />
+  ));
+
+  const [recommendations, setRecommendations] = useState([]);
+
+  // 1. On récupère le "user" directement depuis l'URL de la fenêtre de navigation
+  const queryParams = new URLSearchParams(window.location.search);
+  const userId = queryParams.get('user'); // Vaudra "4" si l'URL finit par ?user=4
+
+  useEffect(() => {
+    // 2. Si un utilisateur est présent dans l'URL, on charge ses recommandations
+    if (userId) {
+      fetch(`http://localhost:3000/users/${userId}/recommendations`)
+        .then((res) => res.json())
+        .then((data) => setRecommendations(data.recommendations))
+        .catch((err) => console.error(err));
+    }
+  }, [userId]); // Se re-déclenche si l'user dans l'URL change
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>Recherche de films</h1>
-        
+
         {/* --- ZONE DE RECHERCHE --- */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
           <input
@@ -61,27 +77,34 @@ function Home() {
             onChange={(event) => setFilm(event.target.value)}
             style={{ padding: '5px', fontSize: '16px' }}
           />
-          <button onClick={lancerRecherche} style={{ padding: '5px 10px', fontSize: '16px', cursor: 'pointer' }}>
+          <button
+            onClick={lancerRecherche}
+            style={{ padding: '5px 10px', fontSize: '16px', cursor: 'pointer' }}
+          >
             Rechercher
           </button>
         </div>
 
         <label for="film-criterion">Critère de tri</label>
-        <select id="film-criterion" name="film-criterion" onChange={UpdateSortedMovies}>
+        <select
+          id="film-criterion"
+          name="film-criterion"
+          onChange={UpdateSortedMovies}
+        >
           <option value="popularity">Popularité</option>
           <option value="release_date">Date de sortie</option>
           <option value="rating">Note</option>
           <option value="alphabetical">Alphabétique</option>
           <option value="duration">Durée</option>
         </select>
-        
+
         {/* --- AFFICHAGE DES RÉSULTATS --- */}
         <div
           style={{
             display: 'flex',
             flexWrap: 'wrap',
             justifyContent: 'center',
-            width: '100%'
+            width: '100%',
           }}
         >
           {movies.length > 0 ? (

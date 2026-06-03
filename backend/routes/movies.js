@@ -1,9 +1,9 @@
 import express from 'express';
 // import axios from 'axios';
 import cors from 'cors';
+import { Like } from 'typeorm';
 import { appDataSource } from '../datasource.js';
 import Movie from '../entities/movies.js';
-import { Like } from 'typeorm';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -13,7 +13,7 @@ router.get('/', async (req, res) => {
 
   try {
     const movieRepository = appDataSource.getRepository(Movie);
-    
+
     // On regarde si l'URL contient "?name=quelquechose"
     const searchName = req.query.name;
     let movies;
@@ -22,9 +22,9 @@ router.get('/', async (req, res) => {
       // S'il y a une recherche, on filtre les résultats
       console.log(`Recherche en cours avec le mot-clé : ${searchName}`);
       movies = await movieRepository.find({
-        where: { 
-          name: Like(`%${searchName}%`) // Le % agit comme un joker de chaque côté
-        }
+        where: {
+          name: Like(`%${searchName}%`), // Le % agit comme un joker de chaque côté
+        },
       });
     } else {
       // Sinon, on récupère TOUS les enregistrements comme avant
@@ -166,6 +166,53 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({
       message: 'Une erreur interne est survenue lors de la suppression.',
     });
+  }
+});
+
+// POST /movies/:movieId/react
+// req.body doit contenir : { userId: 4, isLike: true }
+router.post('/:movieId/react', async function (req, res) {
+  try {
+    const movieId = req.params.movieId;
+    const { userId, isLike } = req.body;
+
+    const likeRepository = appDataSource.getRepository(Like);
+
+    // 1. On cherche si l'utilisateur a déjà réagi à ce film
+    const existingReaction = await likeRepository.findOne({
+      where: {
+        user: { id: userId },
+        movie: { id: movieId },
+      },
+    });
+
+    if (existingReaction) {
+      // Si la réaction existe déjà mais qu'elle change (ex: Like -> Dislike)
+      if (existingReaction.isLike !== isLike) {
+        existingReaction.isLike = isLike;
+        await likeRepository.save(existingReaction);
+
+        return res.json({ message: 'Reaction updated successfully' });
+      }
+
+      // Si l'utilisateur clique à nouveau sur le même bouton, on peut imaginer qu'il "annule" son comme sur Netflix
+      await likeRepository.remove(existingReaction);
+
+      return res.json({ message: 'Reaction removed' });
+    }
+
+    // 2. Si aucune réaction n'existe, on la crée
+    const newReaction = likeRepository.create({
+      isLike: isLike,
+      user: { id: userId }, // TypeORM comprend directement grâce à l'ID
+      movie: { id: movieId },
+    });
+
+    await likeRepository.save(newReaction);
+    res.status(201).json({ message: 'Reaction saved successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error processing the reaction' });
   }
 });
 

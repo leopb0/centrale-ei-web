@@ -13,6 +13,11 @@ router.get('/', function (req, res) {
     });
 });
 
+// // Dans ton routeur express (users.js)
+// router.get('/:userId/recommendations', function (req, res) {
+//   const userId = req.params.userId;
+// });
+
 router.post('/new', function (req, res) {
   const userRepository = appDataSource.getRepository(User);
   const newUser = userRepository.create({
