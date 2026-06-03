@@ -26,24 +26,48 @@ const Movie = new typeorm.EntitySchema({
       nullable: true,
     },
     synopsis: {
-      type: String, // Devient un type TEXT en SQL pour les longs textes
+      type: String,
       nullable: true,
     },
     rating: {
-      type: 'float', // Permet de mettre des notes à virgule (ex: 4.5)
+      type: 'float',
       nullable: true,
     },
     imageUrl: {
       type: String,
-      nullable: true, // Utile pour stocker le lien de l'affiche du film
+      nullable: true,
+    },
+    // 🎬 1. LE GENRE
+    // Option simple : une chaîne de caractères (ex: "Action", "Sci-Fi, Drama")
+    genre: {
+      type: String,
+      nullable: true,
+    },
+    // 🔥 2. LA POPULARITÉ
+    // Utilisation de 'float' pour stocker une valeur précise entre 0 et 1 (ex: 0.85)
+    popularity: {
+      type: 'float',
+      nullable: false,
+      default: 0.0, // Par défaut, un film commence à 0 s'il n'est pas populaire
+    },
+    // 🔞 3. L'ÂGE MINIMAL
+    // Un entier (ex: 0, 12, 16, 18) pour filtrer les recommandations
+    minAge: {
+      type: Number,
+      nullable: false,
+      default: 0, // Par défaut, tout public (0 an)
+    },
+    languages: {
+      type: 'simple-json',
+      nullable: true,
     },
     createdAt: {
-      type: 'datetime', // ou 'timestamp' selon ta base de données
-      createDate: true, // TypeORM gère automatiquement la date de création
+      type: 'datetime',
+      createDate: true,
     },
     updatedAt: {
       type: 'datetime',
-      updateDate: true, // TypeORM met à jour la date automatiquement à chaque modification
+      updateDate: true,
     },
   },
 });
