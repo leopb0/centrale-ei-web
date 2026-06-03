@@ -1,31 +1,33 @@
 import React from 'react';
-import './Movie.css';
 
 function Movie({ data }) {
-  const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
-
-  const formattedDate = new Date(data.release_date).toLocaleDateString(
-    'fr-FR',
-    {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }
-  );
-
   return (
-    <div className="movie-card">
-      {data.poster_path && (
-        <img
-          className="movie-poster"
-          src={`${imageBaseUrl}${data.poster_path}`}
-          alt={`Affiche du film ${data.title}`}
+    <div style={{ 
+      border: '1px solid #ddd', 
+      borderRadius: '8px',
+      padding: '15px', 
+      margin: '10px', 
+      width: '250px',
+      backgroundColor: '#282c34', // Pour aller avec votre thème sombre
+      color: 'white',
+      textAlign: 'center'
+    }}>
+      {/* On affiche l'image si elle existe */}
+      {data.imageUrl && (
+        <img 
+          src={data.imageUrl} 
+          alt={`Affiche de ${data.name}`} 
+          style={{ width: '100%', borderRadius: '5px' }} 
         />
       )}
-      <div className="movie-info">
-        <h2 className="movie-title">{data.title}</h2>
-        <p className="movie-date">Date de sortie : {formattedDate}</p>
-      </div>
+      
+      {/* On utilise data.name au lieu de data.title ! */}
+      <h3 style={{ marginTop: '10px' }}>{data.name}</h3>
+      
+      <p style={{ fontSize: '14px', color: '#ccc' }}>
+        <strong>Réalisateur :</strong> {data.director} <br/>
+        <strong>Année :</strong> {data.releaseYear}
+      </p>
     </div>
   );
 }

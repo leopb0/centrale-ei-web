@@ -3,7 +3,7 @@ import axios from 'axios';
 import cors from 'cors';
 import { appDataSource } from '../datasource.js';
 import Movie from '../entities/movies.js';
-
+import { Like } from 'typeorm';
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -12,13 +12,26 @@ router.get('/', async (req, res) => {
   );
 
   try {
-    // 1. On récupère le repository de l'entité Movie
     const movieRepository = appDataSource.getRepository(Movie);
+    
+    // On regarde si l'URL contient "?name=quelquechose"
+    const searchName = req.query.name;
+    let movies;
 
-    // 2. On utilise la méthode find() pour récupérer TOUS les enregistrements
-    const movies = await movieRepository.find();
+    if (searchName) {
+      // S'il y a une recherche, on filtre les résultats
+      console.log(`Recherche en cours avec le mot-clé : ${searchName}`);
+      movies = await movieRepository.find({
+        where: { 
+          name: Like(`%${searchName}%`) // Le % agit comme un joker de chaque côté
+        }
+      });
+    } else {
+      // Sinon, on récupère TOUS les enregistrements comme avant
+      movies = await movieRepository.find();
+    }
 
-    // 3. On renvoie la liste des films au format JSON avec un statut 200 (OK)
+    // On renvoie la liste au format JSON
     res.status(200).json(movies);
   } catch (error) {
     console.error('Erreur lors de la récupération des films :', error);
