@@ -10,7 +10,8 @@
     "migration:generate": "dotenv -- typeorm --dataSource='./datasource.js' migration:generate --outputJs --pretty migrations/$npm_config_name",
     "postmigration:generate": "bash ./postmigration.sh",
     "migration:run": "dotenv -- typeorm --dataSource='./datasource.js' migration:run",
-    "migration:revert": "dotenv -- typeorm --dataSource='./datasource.js' migration:revert"
+    "migration:revert": "dotenv -- typeorm --dataSource='./datasource.js' migration:revert",
+    "db:seed": "dotenv -- node seed.js"
   },
   "dependencies": {
     "axios": "^1.16.1",
