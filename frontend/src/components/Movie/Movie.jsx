@@ -2,29 +2,20 @@ import React from 'react';
 import './Movie.css';
 
 function Movie({ data }) {
-  const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
-
-  const formattedDate = new Date(data.release_date).toLocaleDateString(
-    'fr-FR',
-    {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }
-  );
-
   return (
     <div className="movie-card">
-      {data.poster_path && (
+      {data.imageUrl && (
         <img
           className="movie-poster"
-          src={`${imageBaseUrl}${data.poster_path}`}
-          alt={`Affiche du film ${data.title}`}
+          src={data.imageUrl}
+          alt={`Affiche du film ${data.name}`}
         />
       )}
       <div className="movie-info">
-        <h2 className="movie-title">{data.title}</h2>
-        <p className="movie-date">Date de sortie : {formattedDate}</p>
+        <h2 className="movie-title">{data.name}</h2>
+        {data.releaseYear && (
+          <p className="movie-date">Année de sortie : {data.releaseYear}</p>
+        )}
       </div>
     </div>
   );

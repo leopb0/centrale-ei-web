@@ -15,8 +15,8 @@ export function useFetchFilms() {
       })
       .then((response) => {
         // Do something if call succeeded
-        console.log('Données reçues :', response.data.results);
-        setMovies(response.data.results);
+        console.log('Données reçues :', response.data);
+        setMovies(response.data);
       })
       .catch((error) => {
         // Do something if call failed
