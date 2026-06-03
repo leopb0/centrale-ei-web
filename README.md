@@ -60,3 +60,9 @@ npm run build
 ```
 npm run lint
 ```
+
+### A installer dans backend 
+
+```
+npm install bcryptjs jsonwebtoken cookie-parser
+```
