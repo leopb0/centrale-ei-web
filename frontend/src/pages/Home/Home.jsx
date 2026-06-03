@@ -7,7 +7,7 @@ import Movie from '../../components/Movie/Movie';
 function Home() {
   // 1. L'état pour ce qui est tapé en direct dans la barre
   const [Film, setFilm] = useState('');
-  const [sorting_criterion, SetSorting_criterion] = useState('default');
+  const [sorting_criterion, SetSorting_criterion] = useState('popularity');
 
   const UpdateSortedMovies = () => {
       SetSorting_criterion(document.getElementById('film-criterion').value);
@@ -15,10 +15,7 @@ function Home() {
 
   const getSortedMovies = () => {
       let sorting_function;
-      if (sorting_criterion === 'default') {
-        sorting_function = (a, b) => 0;
-      }
-      else if (sorting_criterion === 'popularity') {
+      if (sorting_criterion === 'popularity') {
       sorting_function = (a, b) => b.popularity - a.popularity;//needs to be changed
       }
       else if (sorting_criterion === 'release_date') {
@@ -71,7 +68,6 @@ function Home() {
 
         <label for="film-criterion">Critère de tri</label>
         <select id="film-criterion" name="film-criterion" onChange={UpdateSortedMovies}>
-          <option value="default">Par défaut</option>
           <option value="popularity">Popularité</option>
           <option value="release_date">Date de sortie</option>
           <option value="rating">Note</option>
