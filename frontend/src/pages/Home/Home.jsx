@@ -7,6 +7,34 @@ import Movie from '../../components/Movie/Movie';
 function Home() {
   // 1. L'état pour ce qui est tapé en direct dans la barre
   const [Film, setFilm] = useState('');
+  const [sorting_criterion, SetSorting_criterion] = useState('default');
+
+  const UpdateSortedMovies = () => {
+      SetSorting_criterion(document.getElementById('film-criterion').value);
+  }
+
+  const getSortedMovies = () => {
+      let sorting_function;
+      if (sorting_criterion === 'default') {
+        sorting_function = (a, b) => 0;
+      }
+      else if (sorting_criterion === 'popularity') {
+      sorting_function = (a, b) => b.popularity - a.popularity;//needs to be changed
+      }
+      else if (sorting_criterion === 'release_date') {
+        sorting_function = (a, b) => new Date(b.releaseYear) - new Date(a.releaseYear);
+      }
+      else if (sorting_criterion === 'rating') {
+        sorting_function = (a, b) => b.rating - a.rating;
+      }
+      else if (sorting_criterion === 'alphabetical') {
+        sorting_function = (a, b) => a.name.localeCompare(b.name);
+      }
+      else if (sorting_criterion === 'duration') {
+        sorting_function = (a, b) => b.duration - a.duration;
+      }
+      return [...movies].sort(sorting_function);
+  }
   
   // 2. L'état pour le mot-clé validé (quand on clique sur le bouton)
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,12 +47,30 @@ function Home() {
     console.log("🚨 BOUTON CLIQUÉ ! Lancement de la recherche pour :", Film);
     setSearchTerm(Film);
   };
-  const liste_films = movies.map((movie) => <Movie key={movie.id} data={movie} />);
+  const liste_films = getSortedMovies().map((movie) => <Movie key={movie.id} data={movie} />);
 
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        <p>Liste des films</p>
+        <input
+          required
+          type="text"
+          value={Film}
+          onChange={(event) => setFilm(event.target.value)}
+        />
+        <p>Film rentré : {Film}</p>
+        <label for="film-criterion">Critère de tri</label>
+        <select id="film-criterion" name="film-criterion" onChange={UpdateSortedMovies}>
+          <option value="default">Par défaut</option>
+          <option value="popularity">Popularité</option>
+          <option value="release_date">Date de sortie</option>
+          <option value="rating">Note</option>
+          <option value="alphabetical">Alphabétique</option>
+          <option value="duration">Durée</option>
+        </select>
+        <p>Films les plus polulaires :</p>
         <p>Recherche de films</p>
         
         {/* --- ZONE DE RECHERCHE --- */}
