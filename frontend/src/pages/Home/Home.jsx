@@ -52,26 +52,7 @@ function Home() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Liste des films</p>
-        <input
-          required
-          type="text"
-          value={Film}
-          onChange={(event) => setFilm(event.target.value)}
-        />
-        <p>Film rentré : {Film}</p>
-        <label for="film-criterion">Critère de tri</label>
-        <select id="film-criterion" name="film-criterion" onChange={UpdateSortedMovies}>
-          <option value="default">Par défaut</option>
-          <option value="popularity">Popularité</option>
-          <option value="release_date">Date de sortie</option>
-          <option value="rating">Note</option>
-          <option value="alphabetical">Alphabétique</option>
-          <option value="duration">Durée</option>
-        </select>
-        <p>Films les plus polulaires :</p>
-        <p>Recherche de films</p>
+        <h1>Recherche de films</h1>
         
         {/* --- ZONE DE RECHERCHE --- */}
         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
@@ -87,6 +68,16 @@ function Home() {
             Rechercher
           </button>
         </div>
+
+        <label for="film-criterion">Critère de tri</label>
+        <select id="film-criterion" name="film-criterion" onChange={UpdateSortedMovies}>
+          <option value="default">Par défaut</option>
+          <option value="popularity">Popularité</option>
+          <option value="release_date">Date de sortie</option>
+          <option value="rating">Note</option>
+          <option value="alphabetical">Alphabétique</option>
+          <option value="duration">Durée</option>
+        </select>
         
         {/* --- AFFICHAGE DES RÉSULTATS --- */}
         <div
