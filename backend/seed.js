@@ -108,6 +108,9 @@ async function seedWithTMDB() {
     await appDataSource.initialize();
     const movieRepository = appDataSource.getRepository(Movie);
 
+    console.log('Suppression des films existants...');
+    await movieRepository.clear();
+
     const rawTmdbMovies = [];
     const maxPages = 25;
 
