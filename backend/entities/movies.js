@@ -70,6 +70,14 @@ const Movie = new typeorm.EntitySchema({
       updateDate: true,
     },
   },
+  relations: {
+    likes: {
+      type: 'one-to-many',
+      target: 'Like',
+      inverseSide: 'movie',
+      onDelete: 'CASCADE', // Si le film est supprimé, les likes associés disparaissent
+    },
+  },
 });
 
 export default Movie;

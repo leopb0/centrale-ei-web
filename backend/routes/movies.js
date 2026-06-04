@@ -1,7 +1,7 @@
 import express from 'express';
 // import axios from 'axios';
 import cors from 'cors';
-import { Like } from 'typeorm';
+import Like from '../entities/like.js';
 import { appDataSource } from '../datasource.js';
 import Movie from '../entities/movies.js';
 const router = express.Router();
