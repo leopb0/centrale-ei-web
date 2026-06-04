@@ -1,0 +1,20 @@
+.login-form > :not(:last-child) {
+  margin-right: 10px;
+}
+
+.login-input {
+  padding: 5px;
+}
+
+.login-button {
+  cursor: pointer;
+  padding: 5px;
+}
+
+.user-login-success {
+  color: green;
+}
+
+.user-login-error {
+  color: red;
+}

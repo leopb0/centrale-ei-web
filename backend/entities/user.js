@@ -14,6 +14,15 @@ const User = new typeorm.EntitySchema({
     },
     firstname: { type: String },
     lastname: { type: String },
+    password: { type: String },
+  },
+  relations: {
+    likes: {
+      type: 'one-to-many',
+      target: 'Like',
+      inverseSide: 'user',
+      onDelete: 'CASCADE', // Si l'user est supprimé, ses likes disparaissent
+    },
   },
 });
 
