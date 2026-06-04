@@ -46,22 +46,6 @@ function Home() {
     <Movie key={movie.id} data={movie} />
   ));
 
-  const [recommendations, setRecommendations] = useState([]);
-
-  // 1. On récupère le "user" directement depuis l'URL de la fenêtre de navigation
-  const queryParams = new URLSearchParams(window.location.search);
-  const userId = queryParams.get('user'); // Vaudra "4" si l'URL finit par ?user=4
-
-  useEffect(() => {
-    // 2. Si un utilisateur est présent dans l'URL, on charge ses recommandations
-    if (userId) {
-      fetch(`http://localhost:3000/users/${userId}/recommendations`)
-        .then((res) => res.json())
-        .then((data) => setRecommendations(data.recommendations))
-        .catch((err) => console.error(err));
-    }
-  }, [userId]); // Se re-déclenche si l'user dans l'URL change
-
   return (
     <div className="App">
       <header className="App-header">

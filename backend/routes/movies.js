@@ -277,4 +277,44 @@ router.post('/:movieId/react', async function (req, res) {
   }
 });
 
+// GET /movies/user/liked - Retourne tous les films aimés par l'utilisateur authentifié
+router.get('/user/liked', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token missing or malformed' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const userId = decoded.userId;
+
+    const likeRepository = appDataSource.getRepository(LikeEntity);
+    const movieRepository = appDataSource.getRepository(Movie);
+
+    // Récupérer tous les likes de l'utilisateur où isLike = true
+    const userLikes = await likeRepository.find({
+      where: {
+        user: { id: userId },
+        isLike: true,
+      },
+      relations: ['movie'],
+    });
+
+    // Extraire les films des likes
+    const likedMovies = userLikes.map((like) => like.movie);
+
+    res.json(likedMovies);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching liked movies' });
+  }
+});
+
 export default router;
