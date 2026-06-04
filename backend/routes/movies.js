@@ -2,6 +2,7 @@
 // import axios from 'axios';
 import cors from 'cors';
 import { Like } from 'typeorm';
+import jwt from 'jsonwebtoken';
 import LikeEntity from '../entities/like.js';
 import { appDataSource } from '../datasource.js';
 import Movie from '../entities/movies.js';
@@ -42,11 +43,49 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /movies/:movieId/reaction
+// Retourne la réaction (isLike) de l'utilisateur authentifié pour ce film
+router.get('/:movieId/reaction', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token missing or malformed' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const userId = decoded.userId;
+    const movieId = req.params.movieId;
+
+    const likeRepository = appDataSource.getRepository(LikeEntity);
+    const reaction = await likeRepository.findOne({
+      where: { user: { id: userId }, movie: { id: movieId } },
+    });
+
+    if (!reaction) {
+      return res.json({ isLike: null });
+    }
+
+    return res.json({ isLike: reaction.isLike });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error while fetching reaction' });
+  }
+});
+
 router.get('/:id', async (req, res) => {
   // 1. On rÃ©cupÃ¨re l'id depuis les paramÃ¨tres de l'URL
   const movieId = req.params.id;
 
-  console.log(`RequÃªte reÃ§ue pour rÃ©cupÃ©rer le film avec l'id : ${movieId}`);
+  console.log(
+    `RequÃªte reÃ§ue pour rÃ©cupÃ©rer le film avec l'id : ${movieId}`
+  );
 
   try {
     const movieRepository = appDataSource.getRepository(Movie);
@@ -175,11 +214,26 @@ router.delete('/:id', async (req, res) => {
 router.post('/:movieId/react', async function (req, res) {
   try {
     const movieId = req.params.movieId;
-    const { userId, isLike } = req.body;
+    // Récupération du token JWT depuis l'en-tête Authorization
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Token missing or malformed' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const userId = decoded.userId;
+    const { isLike } = req.body;
 
     const likeRepository = appDataSource.getRepository(LikeEntity);
 
-    // 1. On cherche si l'utilisateur a dÃ©jÃ  rÃ©agi Ã  ce film
+    // 1. On cherche si l'utilisateur a déjà réagi à ce film
     const existingReaction = await likeRepository.findOne({
       where: {
         user: { id: userId },
@@ -188,29 +242,35 @@ router.post('/:movieId/react', async function (req, res) {
     });
 
     if (existingReaction) {
-      // Si la rÃ©action existe dÃ©jÃ  mais qu'elle change (ex: Like -> Dislike)
+      // Si la réaction existe déjà mais qu'elle change (ex: Like -> Dislike)
       if (existingReaction.isLike !== isLike) {
         existingReaction.isLike = isLike;
         await likeRepository.save(existingReaction);
 
-        return res.json({ message: 'Reaction updated successfully' });
+        return res.json({
+          message: 'Reaction updated successfully',
+          isLike: existingReaction.isLike,
+        });
       }
 
-      // Si l'utilisateur clique Ã  nouveau sur le mÃªme bouton, on peut imaginer qu'il "annule" son comme sur Netflix
+      // Si l'utilisateur clique à nouveau sur le même bouton, on supprime la réaction
       await likeRepository.remove(existingReaction);
 
-      return res.json({ message: 'Reaction removed' });
+      return res.json({ message: 'Reaction removed', isLike: null });
     }
 
-    // 2. Si aucune rÃ©action n'existe, on la crÃ©e
+    // 2. Si aucune réaction n'existe, on la crée
     const newReaction = likeRepository.create({
       isLike: isLike,
-      user: { id: userId }, // TypeORM comprend directement grÃ¢ce Ã  l'ID
+      user: { id: userId },
       movie: { id: movieId },
     });
 
     await likeRepository.save(newReaction);
-    res.status(201).json({ message: 'Reaction saved successfully' });
+    res.status(201).json({
+      message: 'Reaction saved successfully',
+      isLike: newReaction.isLike,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error processing the reaction' });
@@ -218,5 +278,3 @@ router.post('/:movieId/react', async function (req, res) {
 });
 
 export default router;
-
-
