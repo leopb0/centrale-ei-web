@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 export default function MovieDetails() {
   // useParams permet d'extraire l'ID depuis l'URL (ex: /movie/1 -> id = 1)
@@ -7,25 +7,43 @@ export default function MovieDetails() {
   const [movie, setMovie] = useState(null);
 
   useEffect(() => {
-    // On appelle votre backend pour récupérer un seul film
     fetch(`http://localhost:8000/movies/${id}`)
       .then((res) => res.json())
       .then((data) => setMovie(data))
       .catch((err) => console.error(err));
   }, [id]);
 
-  if (!movie) return <h2 style={{ color: 'white', textAlign: 'center' }}>Chargement...</h2>;
+  if (!movie) {
+    return (
+      <h2 style={{ color: 'white', textAlign: 'center' }}>Chargement...</h2>
+    );
+  }
 
   return (
-    <div style={{ padding: '20px', color: 'white', backgroundColor: '#282c34', minHeight: '100vh' }}>
+    <div
+      style={{
+        padding: '20px',
+        color: 'white',
+        backgroundColor: '#282c34',
+        minHeight: '100vh',
+      }}
+    >
       <Link to="/" style={{ color: '#61dafb', textDecoration: 'none' }}>
         ← Retour à l'accueil
       </Link>
-      
+
       <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-        {movie.imageUrl && <img src={movie.imageUrl} alt={movie.name} style={{ width: '300px', borderRadius: '10px' }} />}
+        {movie.imageUrl && (
+          <img
+            src={movie.imageUrl}
+            alt={movie.name}
+            style={{ width: '300px', borderRadius: '10px' }}
+          />
+        )}
         <div>
-          <h1>{movie.name} ({movie.releaseYear})</h1>
+          <h1>
+            {movie.name} ({movie.releaseYear})
+          </h1>
           <h3>Réalisé par : {movie.director}</h3>
       
           <p><strong>Note :</strong> {movie.rating}/10</p>

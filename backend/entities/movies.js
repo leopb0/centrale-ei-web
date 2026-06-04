@@ -12,6 +12,10 @@ const Movie = new typeorm.EntitySchema({
       type: String,
       nullable: false,
     },
+    actors: {
+      type: 'simple-json',
+      nullable: true,
+    },
     director: {
       type: String,
       nullable: true,
