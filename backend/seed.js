@@ -10,7 +10,6 @@ const TMDB_HEADERS = {
   accept: 'application/json',
 };
 
-// Dictionnaire des genres TMDB
 const TMDB_GENRES = {
   28: 'Action',
   12: 'Aventure',
@@ -33,7 +32,8 @@ const TMDB_GENRES = {
   37: 'Western',
 };
 
-function mapTMDBToMovieSchema(tmdbMovie, runtime) {
+// Mise à jour de la fonction de mapping pour inclure les nouveaux détails
+function mapTMDBToMovieSchema(tmdbMovie, details) {
   const year = tmdbMovie.release_date
     ? parseInt(tmdbMovie.release_date.split('-')[0])
     : 2024;
@@ -74,32 +74,66 @@ function mapTMDBToMovieSchema(tmdbMovie, runtime) {
       ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}`
       : null,
     languages: [tmdbMovie.original_language],
-    director: 'Inconnu',
-    duration: runtime ?? null,
+    // 👇 On utilise les données récupérées depuis les crédits
+    director: details?.director || 'Inconnu',
+    actors: details?.actors || [],
+    duration: details?.runtime ?? null,
   };
 }
 
-async function fetchRuntime(tmdbId) {
+// 🔄 Nouvelle fonction qui récupère durée + crédits en une seule fois
+async function fetchMovieDetails(tmdbId) {
   try {
     const response = await axios.get(
       `https://api.themoviedb.org/3/movie/${tmdbId}`,
-      { params: { language: 'fr-FR' }, headers: TMDB_HEADERS }
+      {
+        // L'astuce magique: append_to_response permet de récupérer les crédits dans le même appel JSON
+        params: { language: 'fr-FR', append_to_response: 'credits' },
+        headers: TMDB_HEADERS,
+      }
     );
-    return response.data.runtime || null;
-  } catch {
-    return null;
+
+    const data = response.data;
+    const credits = data.credits;
+
+    // 1. Isoler le réalisateur (job === 'Director' dans le tableau 'crew')
+    const directorData = credits?.crew?.find(
+      (member) => member.job === 'Director'
+    );
+    const director = directorData ? directorData.name : 'Inconnu';
+
+    // 2. Isoler les 3 acteurs les plus connus
+    // On filtre les acteurs, on les trie par popularité décroissante, on garde les 3 premiers et on extrait leurs noms
+    const topActors =
+      credits?.cast
+        ?.filter((member) => member.known_for_department === 'Acting')
+        .sort((a, b) => b.popularity - a.popularity)
+        .slice(0, 3)
+        .map((actor) => actor.name) || [];
+
+    return {
+      runtime: data.runtime || null,
+      director: director,
+      actors: topActors,
+    };
+  } catch (error) {
+    return { runtime: null, director: 'Inconnu', actors: [] };
   }
 }
 
-async function fetchAllRuntimes(tmdbMovies) {
-  console.log(`→ Récupération des durées pour ${tmdbMovies.length} films...`);
+// Mise à jour de la boucle de récupération
+async function fetchAllMovieDetails(tmdbMovies) {
+  console.log(
+    `→ Récupération des détails (durée, réalisateur, acteurs) pour ${tmdbMovies.length} films...`
+  );
   const results = await Promise.all(
     tmdbMovies.map(async (movie) => ({
       id: movie.id,
-      runtime: await fetchRuntime(movie.id),
+      details: await fetchMovieDetails(movie.id),
     }))
   );
-  return new Map(results.map(({ id, runtime }) => [id, runtime]));
+
+  return new Map(results.map(({ id, details }) => [id, details]));
 }
 
 async function seedWithTMDB() {
@@ -112,7 +146,7 @@ async function seedWithTMDB() {
     await movieRepository.clear();
 
     const rawTmdbMovies = [];
-    const maxPages = 25;
+    const maxPages = 25; // 25 pages * 20 = 500 films
 
     console.log(
       `Début de la récupération des films (Pages 1 à ${maxPages})...`
@@ -130,24 +164,26 @@ async function seedWithTMDB() {
       );
 
       rawTmdbMovies.push(...response.data.results);
+      // Petite pause pour ne pas spammer l'API TMDB
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     console.log(
-      `${rawTmdbMovies.length} films récupérés. Récupération des durées...`
+      `${rawTmdbMovies.length} films récupérés. Récupération des détails approfondis...`
     );
 
-    const runtimes = await fetchAllRuntimes(rawTmdbMovies);
+    // On passe ici notre nouvelle fonction
+    const moviesDetailsMap = await fetchAllMovieDetails(rawTmdbMovies);
 
     const allMoviesToSave = rawTmdbMovies.map((movie) =>
-      mapTMDBToMovieSchema(movie, runtimes.get(movie.id))
+      mapTMDBToMovieSchema(movie, moviesDetailsMap.get(movie.id))
     );
 
     console.log('Sauvegarde globale dans la base de données SQLite...');
     await movieRepository.save(allMoviesToSave, { chunk: 50 });
 
     console.log(
-      '✅ Base de données peuplée avec succès avec 500 vrais films de TMDB !'
+      '✅ Base de données peuplée avec succès avec 500 vrais films de TMDB (avec casting) !'
     );
   } catch (error) {
     console.error('❌ Erreur lors du seed TMDB :', error.message);
