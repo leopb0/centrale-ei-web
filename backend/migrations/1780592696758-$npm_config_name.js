@@ -7,8 +7,8 @@
  * @class
  * @implements {MigrationInterface}
  */
-export default class  $npmConfigName1780559595675 {
-    name = ' $npmConfigName1780559595675'
+export default class  $npmConfigName1780592696758 {
+    name = ' $npmConfigName1780592696758'
 
     /**
      * @param {QueryRunner} queryRunner
@@ -25,12 +25,11 @@ export default class  $npmConfigName1780559595675 {
             )
         `);
         await queryRunner.query(`
-            INSERT INTO "temporary_user"("id", "email", "firstname", "lastname", "password")
+            INSERT INTO "temporary_user"("id", "email", "firstname", "lastname")
             SELECT "id",
                 "email",
                 "firstname",
-                "lastname",
-                ''
+                "lastname"
             FROM "user"
         `);
         await queryRunner.query(`

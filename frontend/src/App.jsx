@@ -7,16 +7,15 @@ import Users from './pages/Users/Users';
 
 import MovieDetails from './pages/Movie_Info';
 
-
 function App() {
   return (
     <Layout>
       <Routes>
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/" element={<Home />} />
-        <Route path="counter" element={<Counter />} />
-        <Route path="users" element={<Users />} />
-        <Route path="about" element={<About />} />
+        <Route path="/recommendations" element={<Counter />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/about" element={<About />} />
       </Routes>
     </Layout>
   );
