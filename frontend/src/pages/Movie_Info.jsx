@@ -45,12 +45,15 @@ export default function MovieDetails() {
             {movie.name} ({movie.releaseYear})
           </h1>
           <h3>Réalisé par : {movie.director}</h3>
-          <p>
-            <strong>Durée :</strong> {movie.duration} minutes
-          </p>
-          <p>
-            <strong>Note :</strong> {movie.rating}/10
-          </p>
+      
+          <p><strong>Note :</strong> {movie.rating}/10</p>
+          <div style={{ margin: '20px 0' }}>
+   
+            <p><strong>Genre :</strong> {movie.genre || "Non renseigné"}</p>
+            <p><strong>Popularité :</strong> {movie.popularity ? `${Math.round(movie.popularity * 100)} %` : "N/A"}</p>
+            <p><strong>Durée :</strong> {movie.duration} minutes</p>
+          </div> 
+            <p><strong>Public :</strong> {movie.minAge > 0 ? `Interdit aux moins de ${movie.minAge} ans` : "Tout public"}</p>
           <div style={{ marginTop: '20px' }}>
             <h2>Synopsis</h2>
             <p>{movie.synopsis}</p>
