@@ -12,6 +12,10 @@ const Header = () => {
         Recommandations
       </Link>
       <div>|</div>
+      <Link className="Link" to="/liked">
+        Likes
+      </Link>
+      <div>|</div>
       <Link className="Link" to="/users">
         Users
       </Link>

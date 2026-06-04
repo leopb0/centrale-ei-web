@@ -4,6 +4,7 @@ import About from './pages/About/About';
 import Layout from './components/Layout/Layout';
 import Counter from './pages/Counter/Counter';
 import Users from './pages/Users/Users';
+import Liked from './pages/Liked/Liked';
 
 import MovieDetails from './pages/Movie_Info';
 
@@ -15,6 +16,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/recommendations" element={<Counter />} />
         <Route path="/users" element={<Users />} />
+        <Route path="/liked" element={<Liked />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </Layout>
