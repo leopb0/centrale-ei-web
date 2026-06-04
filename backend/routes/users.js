@@ -1,6 +1,9 @@
-import express from 'express';
+﻿import express from 'express';
+import { In, Not } from 'typeorm';
 import { appDataSource } from '../datasource.js';
 import User from '../entities/user.js';
+import LikeEntity from '../entities/like.js';
+import Movie from '../entities/movies.js';
 import {hashPassword, verifyPassword} from '../hash.js';
 import jwt from 'jsonwebtoken';
 
@@ -109,17 +112,17 @@ router.delete('/:userId', function (req, res) {
 router.get('/:userId/recommendations', async function (req, res) {
   try {
     const userId = parseInt(req.params.userId, 10);
-    const likeRepository = appDataSource.getRepository(Like);
+    const likeRepository = appDataSource.getRepository(LikeEntity);
     const movieRepository = appDataSource.getRepository(Movie);
 
     // --- POIDS DE L'ALGORITHME (Ajustables) ---
-    const WEIGHT_GENRE = 0.5; // Poids accordé aux genres préférés (50%)
-    const WEIGHT_COLLAB = 0.5; // Poids accordé aux utilisateurs similaires (50%)
+    const WEIGHT_GENRE = 0.5; // Poids accordÃ© aux genres prÃ©fÃ©rÃ©s (50%)
+    const WEIGHT_COLLAB = 0.5; // Poids accordÃ© aux utilisateurs similaires (50%)
 
     // ==========================================
-    // ÉTAPE 1 : Analyser le profil de l'utilisateur
+    // Ã‰TAPE 1 : Analyser le profil de l'utilisateur
     // ==========================================
-    // On récupère toutes les réactions de l'utilisateur
+    // On rÃ©cupÃ¨re toutes les rÃ©actions de l'utilisateur
     const userReactions = await likeRepository.find({
       where: { user: { id: userId } },
       relations: ['movie'],
@@ -131,7 +134,7 @@ router.get('/:userId/recommendations', async function (req, res) {
       .map((r) => r.movie);
 
     if (likedMovies.length === 0) {
-      // Si l'utilisateur n'a rien liké, on renvoie les films les plus populaires par défaut
+      // Si l'utilisateur n'a rien likÃ©, on renvoie les films les plus populaires par dÃ©faut
       const popularMovies = await movieRepository.find({
         order: { popularity: 'DESC' },
         take: 10,
@@ -141,7 +144,7 @@ router.get('/:userId/recommendations', async function (req, res) {
     }
 
     // ==========================================
-    // ÉTAPE 2 : Calculer le score des Genres (Content-Based)
+    // Ã‰TAPE 2 : Calculer le score des Genres (Content-Based)
     // ==========================================
     const genrePreferences = {};
 
@@ -149,7 +152,7 @@ router.get('/:userId/recommendations', async function (req, res) {
       if (!movie.genre) {
         return;
       }
-      // On sépare les genres (ex: "Action, Sci-Fi" -> ["Action", "Sci-Fi"])
+      // On sÃ©pare les genres (ex: "Action, Sci-Fi" -> ["Action", "Sci-Fi"])
       const genres = movie.genre.split(',').map((g) => g.trim());
       genres.forEach((genre) => {
         // Chaque fois que l'utilisateur like un genre, on augmente son score de +1
@@ -158,11 +161,11 @@ router.get('/:userId/recommendations', async function (req, res) {
     });
 
     // ==========================================
-    // ÉTAPE 3 : Trouver les utilisateurs similaires (Collaborative)
+    // Ã‰TAPE 3 : Trouver les utilisateurs similaires (Collaborative)
     // ==========================================
     const likedMovieIds = likedMovies.map((m) => m.id);
 
-    // On cherche les autres likes sur les mêmes films (par d'autres utilisateurs)
+    // On cherche les autres likes sur les mÃªmes films (par d'autres utilisateurs)
     const similarLikes = await likeRepository.find({
       where: {
         movie: { id: In(likedMovieIds) },
@@ -175,12 +178,12 @@ router.get('/:userId/recommendations', async function (req, res) {
     const userSimilarityScores = {};
     similarLikes.forEach((like) => {
       const simUserId = like.user.id;
-      // +1 point de similarité pour chaque film liké en commun
+      // +1 point de similaritÃ© pour chaque film likÃ© en commun
       userSimilarityScores[simUserId] =
         (userSimilarityScores[simUserId] || 0) + 1;
     });
 
-    // On récupère TOUS les likes des utilisateurs similaires
+    // On rÃ©cupÃ¨re TOUS les likes des utilisateurs similaires
     const similarUsersIds = Object.keys(userSimilarityScores).map((id) =>
       parseInt(id, 10)
     );
@@ -193,10 +196,10 @@ router.get('/:userId/recommendations', async function (req, res) {
       });
 
       collabLikes.forEach((like) => {
-        // On ignore les films que notre utilisateur a déjà vus
+        // On ignore les films que notre utilisateur a dÃ©jÃ  vus
         if (!interactedMovieIds.includes(like.movie.id)) {
           const simScore = userSimilarityScores[like.user.id];
-          // Le score collaboratif du film augmente en fonction du degré de similarité de l'utilisateur qui l'a liké
+          // Le score collaboratif du film augmente en fonction du degrÃ© de similaritÃ© de l'utilisateur qui l'a likÃ©
           collaborativeMovieScores[like.movie.id] =
             (collaborativeMovieScores[like.movie.id] || 0) + simScore;
         }
@@ -204,10 +207,10 @@ router.get('/:userId/recommendations', async function (req, res) {
     }
 
     // ==========================================
-    // ÉTAPE 4 : Appliquer la formule et trier les films non vus
+    // Ã‰TAPE 4 : Appliquer la formule et trier les films non vus
     // ==========================================
 
-    // On récupère tous les films que l'utilisateur n'a pas encore likés/dislikés
+    // On rÃ©cupÃ¨re tous les films que l'utilisateur n'a pas encore likÃ©s/dislikÃ©s
     const unseenMovies = await movieRepository.find({
       where:
         interactedMovieIds.length > 0
@@ -227,19 +230,19 @@ router.get('/:userId/recommendations', async function (req, res) {
         });
       }
 
-      // 4B. Récupération du score Collaboratif pour ce film
+      // 4B. RÃ©cupÃ©ration du score Collaboratif pour ce film
       const movieCollabScore = collaborativeMovieScores[movie.id] || 0;
 
-      // 4C. Calcul du Score Final (La formule mathématique)
+      // 4C. Calcul du Score Final (La formule mathÃ©matique)
       const finalScore =
         movieGenreScore * WEIGHT_GENRE + movieCollabScore * WEIGHT_COLLAB;
 
-      // On ajoute dynamiquement la propriété score à l'objet film pour le tri
+      // On ajoute dynamiquement la propriÃ©tÃ© score Ã  l'objet film pour le tri
       return { ...movie, recommendationScore: finalScore };
     });
 
     // ==========================================
-    // ÉTAPE 5 : Tri final et réponse
+    // Ã‰TAPE 5 : Tri final et rÃ©ponse
     // ==========================================
 
     // On retire les films avec un score de 0 (aucune pertinence) et on trie du plus grand au plus petit
@@ -256,3 +259,4 @@ router.get('/:userId/recommendations', async function (req, res) {
 });
 
 export default router;
+
