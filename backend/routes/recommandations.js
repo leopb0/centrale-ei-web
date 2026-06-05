@@ -1,7 +1,6 @@
 import express from 'express';
-// import axios from 'axios';
 import cors from 'cors';
-import { In, Like, Not } from 'typeorm';
+import { In, Not } from 'typeorm';
 import jwt from 'jsonwebtoken';
 import LikeEntity from '../entities/like.js';
 import { appDataSource } from '../datasource.js';
@@ -9,9 +8,55 @@ import Movie from '../entities/movies.js';
 
 const router = express.Router();
 
+// --- FONCTIONS UTILITAIRES POUR LA SIMILARITÉ COSINUS ---
+
+// Renvoyer un Set de tous les genres uniques présents dans les films aimés et le film cible
+function getUniqueGenres(likedMovies, targetMovie) {
+  const genresSet = new Set();
+  likedMovies.forEach((m) => {
+    if (m.genre) {
+      m.genre.split(',').forEach((g) => genresSet.add(g.trim()));
+    }
+  });
+  if (targetMovie.genre) {
+    targetMovie.genre.split(',').forEach((g) => genresSet.add(g.trim()));
+  }
+
+  return Array.from(genresSet);
+}
+
+// Calculer la similarité cosinus entre deux vecteurs binaires (présence/absence de genre)
+function calculateCosineSimilarity(movieA, movieB, allGenres) {
+  if (!movieA.genre || !movieB.genre) {
+    return 0;
+  }
+
+  const genresA = movieA.genre.split(',').map((g) => g.trim());
+  const genresB = movieB.genre.split(',').map((g) => g.trim());
+
+  let dotProduct = 0;
+  let magnitudeA = 0;
+  let magnitudeB = 0;
+
+  allGenres.forEach((genre) => {
+    const valA = genresA.includes(genre) ? 1 : 0;
+    const valB = genresB.includes(genre) ? 1 : 0;
+
+    dotProduct += valA * valB;
+    magnitudeA += valA * valA;
+    magnitudeB += valB * valB;
+  });
+
+  if (magnitudeA === 0 || magnitudeB === 0) {
+    return 0;
+  }
+
+  return dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
+}
+
 router.get('/', async function (req, res) {
   try {
-    // Récupération du token JWT depuis l'en-tête Authorization
+    // Récupération du token JWT
     const authHeader = req.headers.authorization || req.headers.Authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Token missing or malformed' });
@@ -29,14 +74,13 @@ router.get('/', async function (req, res) {
     const likeRepository = appDataSource.getRepository(LikeEntity);
     const movieRepository = appDataSource.getRepository(Movie);
 
-    // --- POIDS DE L'ALGORITHME (Ajustables) ---
-    const WEIGHT_GENRE = 0.5; // Poids accordÃ© aux genres prÃ©fÃ©rÃ©s (50%)
-    const WEIGHT_COLLAB = 0.5; // Poids accordÃ© aux utilisateurs similaires (50%)
+    // --- POIDS DE L'ALGORITHME ---
+    const WEIGHT_GENRE = 0.5; // Poids accordé à la similarité cosinus des genres (50%)
+    const WEIGHT_COLLAB = 0.5; // Poids accordé aux utilisateurs similaires (50%)
 
     // ==========================================
-    // Ã‰TAPE 1 : Analyser le profil de l'utilisateur
+    // ÉTAPE 1 : Analyser le profil de l'utilisateur
     // ==========================================
-    // On rÃ©cupÃ¨re toutes les rÃ©actions de l'utilisateur
     const userReactions = await likeRepository.find({
       where: { user: { id: userId } },
       relations: ['movie'],
@@ -48,7 +92,6 @@ router.get('/', async function (req, res) {
       .map((r) => r.movie);
 
     if (likedMovies.length === 0) {
-      // Si l'utilisateur n'a rien likÃ©, on renvoie les films les plus populaires par dÃ©faut
       const popularMovies = await movieRepository.find({
         order: { popularity: 'DESC' },
         take: 10,
@@ -58,33 +101,15 @@ router.get('/', async function (req, res) {
     }
 
     // ==========================================
-    // Ã‰TAPE 2 : Calculer le score des Genres (Content-Based)
-    // ==========================================
-    const genrePreferences = {};
-
-    likedMovies.forEach((movie) => {
-      if (!movie.genre) {
-        return;
-      }
-      // On sÃ©pare les genres (ex: "Action, Sci-Fi" -> ["Action", "Sci-Fi"])
-      const genres = movie.genre.split(',').map((g) => g.trim());
-      genres.forEach((genre) => {
-        // Chaque fois que l'utilisateur like un genre, on augmente son score de +1
-        genrePreferences[genre] = (genrePreferences[genre] || 0) + 1;
-      });
-    });
-
-    // ==========================================
-    // Ã‰TAPE 3 : Trouver les utilisateurs similaires (Collaborative)
+    // ÉTAPE 2 : Trouver les utilisateurs similaires (Collaborative)
     // ==========================================
     const likedMovieIds = likedMovies.map((m) => m.id);
 
-    // On cherche les autres likes sur les mÃªmes films (par d'autres utilisateurs)
     const similarLikes = await likeRepository.find({
       where: {
         movie: { id: In(likedMovieIds) },
         isLike: true,
-        user: { id: Not(userId) }, // On exclut notre utilisateur cible
+        user: { id: Not(userId) },
       },
       relations: ['user'],
     });
@@ -92,17 +117,17 @@ router.get('/', async function (req, res) {
     const userSimilarityScores = {};
     similarLikes.forEach((like) => {
       const simUserId = like.user.id;
-      // +1 point de similaritÃ© pour chaque film likÃ© en commun
       userSimilarityScores[simUserId] =
         (userSimilarityScores[simUserId] || 0) + 1;
     });
 
-    // On rÃ©cupÃ¨re TOUS les likes des utilisateurs similaires
     const similarUsersIds = Object.keys(userSimilarityScores).map((id) =>
       parseInt(id, 10)
     );
 
     const collaborativeMovieScores = {};
+    let maxCollabScore = 0; // Pour la normalisation future
+
     if (similarUsersIds.length > 0) {
       const collabLikes = await likeRepository.find({
         where: { user: { id: In(similarUsersIds) }, isLike: true },
@@ -110,21 +135,21 @@ router.get('/', async function (req, res) {
       });
 
       collabLikes.forEach((like) => {
-        // On ignore les films que notre utilisateur a dÃ©jÃ  vus
         if (!interactedMovieIds.includes(like.movie.id)) {
           const simScore = userSimilarityScores[like.user.id];
-          // Le score collaboratif du film augmente en fonction du degrÃ© de similaritÃ© de l'utilisateur qui l'a likÃ©
           collaborativeMovieScores[like.movie.id] =
             (collaborativeMovieScores[like.movie.id] || 0) + simScore;
+
+          if (collaborativeMovieScores[like.movie.id] > maxCollabScore) {
+            maxCollabScore = collaborativeMovieScores[like.movie.id];
+          }
         }
       });
     }
 
     // ==========================================
-    // Ã‰TAPE 4 : Appliquer la formule et trier les films non vus
+    // ÉTAPE 3 : Appliquer la formule Cosinus + Collab
     // ==========================================
-
-    // On rÃ©cupÃ¨re tous les films que l'utilisateur n'a pas encore likÃ©s/dislikÃ©s
     const unseenMovies = await movieRepository.find({
       where:
         interactedMovieIds.length > 0
@@ -133,33 +158,39 @@ router.get('/', async function (req, res) {
     });
 
     const scoredMovies = unseenMovies.map((movie) => {
-      // 4A. Calcul du score Genre pour ce film
-      let movieGenreScore = 0;
-      if (movie.genre) {
-        const genres = movie.genre.split(',').map((g) => g.trim());
-        genres.forEach((genre) => {
-          if (genrePreferences[genre]) {
-            movieGenreScore += genrePreferences[genre];
-          }
-        });
-      }
+      // 3A. Calcul de la Similarité Cosinus (Content-Based)
+      // On extrait la liste globale des genres pertinents pour cette comparaison
+      const allGenres = getUniqueGenres(likedMovies, movie);
 
-      // 4B. RÃ©cupÃ©ration du score Collaboratif pour ce film
-      const movieCollabScore = collaborativeMovieScores[movie.id] || 0;
+      let totalCosineSimilarity = 0;
+      likedMovies.forEach((likedMovie) => {
+        totalCosineSimilarity += calculateCosineSimilarity(
+          movie,
+          likedMovie,
+          allGenres
+        );
+      });
 
-      // 4C. Calcul du Score Final (La formule mathÃ©matique)
+      // On fait la moyenne de similarité par rapport à tous les films aimés
+      const meanCosineSimilarity = totalCosineSimilarity / likedMovies.length;
+
+      // 3B. Récupération et normalisation du score Collaboratif
+      // Utile car le score collab peut monter haut, alors que le cosinus est bridé entre 0 et 1
+      const rawCollabScore = collaborativeMovieScores[movie.id] || 0;
+      const normalizedCollabScore =
+        maxCollabScore > 0 ? rawCollabScore / maxCollabScore : 0;
+
+      // 3C. Calcul du Score Final
       const finalScore =
-        movieGenreScore * WEIGHT_GENRE + movieCollabScore * WEIGHT_COLLAB;
+        meanCosineSimilarity * WEIGHT_GENRE +
+        normalizedCollabScore * WEIGHT_COLLAB;
 
-      // On ajoute dynamiquement la propriÃ©tÃ© score Ã  l'objet film pour le tri
       return { ...movie, recommendationScore: finalScore };
     });
 
     // ==========================================
-    // Ã‰TAPE 5 : Tri final et rÃ©ponse
+    // ÉTAPE 4 : Tri final et réponse
     // ==========================================
-
-    // On retire les films avec un score de 0 (aucune pertinence) et on trie du plus grand au plus petit
     const finalRecommendations = scoredMovies
       .filter((movie) => movie.recommendationScore > 0)
       .sort((a, b) => b.recommendationScore - a.recommendationScore);
