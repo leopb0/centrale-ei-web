@@ -6,15 +6,16 @@ import './Home.css';
 
 function Home() {
   const [allMovies, setAllMovies] = useState([]);
+  const [allMoviesLoaded, setAllMoviesLoaded] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
 
   const userId = localStorage.getItem('userId');
-  const { likedMovies } = useFetchLikedMovies();
+  const { likedMovies, isLoading: likedLoading } = useFetchLikedMovies();
 
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_BACKEND_URL}/movies`)
-      .then((res) => setAllMovies(res.data))
+      .then((res) => { setAllMovies(res.data); setAllMoviesLoaded(true); })
       .catch(console.error);
   }, []);
 
@@ -26,9 +27,13 @@ function Home() {
       .catch(console.error);
   }, [userId]);
 
+  const ready = allMoviesLoaded && (!userId || !likedLoading);
+
   const trending = [...allMovies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
   const latest = [...allMovies].sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
   const bestRated = [...allMovies].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+  if (!ready) return null;
 
   return (
     <div className="Home-container">

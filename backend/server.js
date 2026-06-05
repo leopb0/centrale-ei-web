@@ -12,54 +12,40 @@ import User from './entities/user.js';
 import { hashPassword } from './hash.js';
 
 const ensureDevAccount = async () => {
-  const userRepository = appDataSource.getRepository(User);
-  const existing = await userRepository.findOne({ where: { email: 'dev@gmail.com' } });
-  if (!existing) {
-    const devUser = userRepository.create({
+  const repo = appDataSource.getRepository(User);
+  const exists = await repo.findOne({ where: { email: 'dev@gmail.com' } });
+  if (!exists) {
+    await repo.save(repo.create({
       email: 'dev@gmail.com',
       firstname: 'Dev',
       lastname: 'Admin',
       password: await hashPassword('dev'),
-    });
-    await userRepository.save(devUser);
-    console.log('Dev account created: dev@gmail.com / dev');
+    }));
   }
 };
 
 const startServer = async () => {
-  console.log('Data Source has been initialized!');
   await ensureDevAccount();
-  const app = express();
 
+  const app = express();
   app.use(logger('dev'));
   app.use(cors());
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 
-  // Register routes
   app.use('/', indexRouter);
   app.use('/users', usersRouter);
   app.use('/movies', moviesRouter);
   app.use('/recommandations', recommandationsRouter);
 
-  // Register 404 middleware and error handler
-  app.use(routeNotFoundJsonHandler); // this middleware must be registered after all routes to handle 404 correctly
-  app.use(jsonErrorHandler); // this error handler must be registered after all middleware to catch all errors
+  app.use(routeNotFoundJsonHandler);
+  app.use(jsonErrorHandler);
 
   const port = parseInt(process.env.PORT || '8000');
-
-  app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-  });
+  app.listen(port, () => console.log(`Server listening at http://localhost:${port}`));
 };
 
-// 1. starts only the server
-// startServer();
-
-// 2. starts the database connection first then starts the server
 appDataSource
   .initialize()
   .then(startServer)
-  .catch((err) => {
-    console.error('Error during Data Source initialization:', err);
-  });
+  .catch(err => console.error('Erreur d\'initialisation de la base de données :', err));
