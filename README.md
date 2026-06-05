@@ -34,6 +34,12 @@ npm run start
 npm run lint
 ```
 
+### Pour remplir la db 
+
+```
+npm run db:seed
+```
+
 ## Frontend
 
 ### Project setup
