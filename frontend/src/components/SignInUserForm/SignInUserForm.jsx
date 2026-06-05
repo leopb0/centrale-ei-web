@@ -23,7 +23,7 @@ function SignInUserForm({ onSuccessfulRegister }) {
   };
 
   const saveUser = (event) => {
-    // This avoid default page reload behavior on form submit
+    // avoid default page reload on form submit
     event.preventDefault();
 
     setUserSignInError(null);

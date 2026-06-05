@@ -20,9 +20,12 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
+    const token = localStorage.getItem('authToken');
+    if (!token) return;
     axios
-      .get(`${import.meta.env.VITE_BACKEND_URL}/users/${userId}/recommendations`)
+      .get(`${import.meta.env.VITE_BACKEND_URL}/recommandations`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => setRecommendations(res.data.recommendations))
       .catch(console.error);
   }, [userId]);

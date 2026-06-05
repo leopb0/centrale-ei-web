@@ -2,7 +2,6 @@ import express from 'express';
 import { appDataSource } from '../datasource.js';
 import User from '../entities/user.js';
 import { hashPassword, verifyPassword } from '../hash.js';
-import { getRecommendations } from '../services/recommendationEngine.js';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
@@ -63,13 +62,5 @@ router.delete('/:userId', async (req, res) => {
   }
 });
 
-router.get('/:userId/recommendations', async (req, res) => {
-  try {
-    const recommendations = await getRecommendations(parseInt(req.params.userId, 10));
-    res.json({ recommendations });
-  } catch {
-    res.status(500).json({ message: 'Erreur lors de la génération des recommandations.' });
-  }
-});
 
 export default router;
