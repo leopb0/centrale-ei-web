@@ -90,7 +90,7 @@ router.post('/login', async function (req, res) {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
-    return res.json({ token, userId: user.id });
+    return res.json({ token, userId: user.id, email: user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error while logging in' });
@@ -137,7 +137,7 @@ router.get('/:userId/recommendations', async function (req, res) {
       // Si l'utilisateur n'a rien likÃ©, on renvoie les films les plus populaires par dÃ©faut
       const popularMovies = await movieRepository.find({
         order: { popularity: 'DESC' },
-        take: 10,
+        take: 50,
       });
 
       return res.json({ recommendations: popularMovies });
@@ -249,7 +249,7 @@ router.get('/:userId/recommendations', async function (req, res) {
     const finalRecommendations = scoredMovies
       .filter((movie) => movie.recommendationScore > 0)
       .sort((a, b) => b.recommendationScore - a.recommendationScore)
-      .slice(0, 10); // On ne garde que le Top 10
+      .slice(0, 50);
 
     res.json({ recommendations: finalRecommendations });
   } catch (error) {

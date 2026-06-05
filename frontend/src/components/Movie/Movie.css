@@ -1,47 +1,10 @@
 .movie-card {
-  background-color: #1a1a1a;
-  border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
   overflow: hidden;
-  max-width: 300px;
-  margin: 15px;
-  font-family: 'Arial', sans-serif;
-  color: #ffffff;
-  transition: transform 0.2s ease-in-out;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .movie-card:hover {
   transform: scale(1.03);
-}
-
-.movie-poster {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.movie-info {
-  padding: 15px;
-}
-
-.movie-title {
-  font-size: 1.3rem;
-  margin: 0 0 8px 0;
-  color: #fff;
-}
-
-.movie-date {
-  font-size: 0.9rem;
-  color: #b3b3b3;
-  margin: 0 0 10px 0;
-}
-
-.movie-rating {
-  display: inline-block;
-  background-color: #e50914; /* Rouge style Netflix */
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: bold;
+  box-shadow: 0 0 24px rgba(108, 71, 255, 0.35);
 }

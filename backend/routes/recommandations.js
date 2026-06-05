@@ -94,7 +94,7 @@ router.get('/', async function (req, res) {
     if (likedMovies.length === 0) {
       const popularMovies = await movieRepository.find({
         order: { popularity: 'DESC' },
-        take: 10,
+        take: 50,
       });
 
       return res.json({ recommendations: popularMovies });

@@ -1,11 +1,12 @@
 .movie-row {
-  margin-bottom: 40px;
+  margin-bottom: 48px;
 }
 
 .movie-row-title {
   color: white;
-  font-size: 1.4rem;
-  margin: 0 0 12px 10px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 14px 10px;
 }
 
 .movie-row-track {
@@ -26,8 +27,9 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(108, 71, 255, 0.4);
+  background-color: rgba(8, 8, 15, 0.75);
+  backdrop-filter: blur(8px);
   color: white;
   font-size: 1.8rem;
   line-height: 1;
@@ -39,8 +41,8 @@
 }
 
 .movie-row-arrow:hover {
-  background-color: rgba(97, 218, 251, 0.85);
-  border-color: #61dafb;
+  background-color: #6c47ff;
+  border-color: #6c47ff;
 }
 
 .movie-row-arrow--left {

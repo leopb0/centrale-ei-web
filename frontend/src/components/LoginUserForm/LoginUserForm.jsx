@@ -9,20 +9,10 @@ const DEFAULT_FORM_VALUES = {
 
 function LoginUserForm() {
   const [formValues, setFormValues] = useState(DEFAULT_FORM_VALUES);
-
   const [userLoginError, setUserLoginError] = useState(null);
-  const [userLoginSuccess, setUserLoginSuccess] = useState(null);
-
-  const displayLoginSuccessMessage = () => {
-    setUserLoginSuccess('User logged in successfully');
-    setTimeout(() => {
-      setUserLoginSuccess(null);
-    }, 3000);
-  };
 
   const loginUser = (event) => {
     event.preventDefault();
-
     setUserLoginError(null);
 
     axios
@@ -30,13 +20,11 @@ function LoginUserForm() {
       .then((response) => {
         localStorage.setItem('authToken', response.data.token);
         localStorage.setItem('userId', response.data.userId);
-        displayLoginSuccessMessage();
-        setFormValues(DEFAULT_FORM_VALUES);
-        console.log('Login successful, token stored in localStorage');
+        localStorage.setItem('userEmail', response.data.email);
+        window.location.reload();
       })
-      .catch((error) => {
-        setUserLoginError('Invalid email or password.');
-        console.error(error);
+      .catch(() => {
+        setUserLoginError('Email ou mot de passe incorrect.');
       });
   };
 
@@ -57,19 +45,16 @@ function LoginUserForm() {
           className="login-input"
           required
           type="password"
-          placeholder="Password"
+          placeholder="Mot de passe"
           value={formValues.password}
           onChange={(event) =>
             setFormValues({ ...formValues, password: event.target.value })
           }
         />
         <button className="login-button" type="submit">
-          Log in
+          Se connecter
         </button>
       </form>
-      {userLoginSuccess !== null && (
-        <div className="user-login-success">{userLoginSuccess}</div>
-      )}
       {userLoginError !== null && (
         <div className="user-login-error">{userLoginError}</div>
       )}
