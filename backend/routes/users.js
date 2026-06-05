@@ -90,7 +90,7 @@ router.post('/login', async function (req, res) {
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
-    return res.json({ token });
+    return res.json({ token, userId: user.id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error while logging in' });
@@ -259,4 +259,4 @@ router.get('/:userId/recommendations', async function (req, res) {
 });
 
 export default router;
-
+ 

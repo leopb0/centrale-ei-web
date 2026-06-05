@@ -1,0 +1,18 @@
+.Browse-container {
+  padding: 30px 20px;
+  background-color: #282c34;
+  min-height: 100vh;
+}
+
+.Browse-title {
+  color: white;
+  font-size: 2rem;
+  margin: 0 0 30px 10px;
+}
+
+.Browse-login-hint {
+  color: #888;
+  font-size: 0.95rem;
+  margin: 0 0 40px 10px;
+  font-style: italic;
+}

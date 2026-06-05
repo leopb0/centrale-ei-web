@@ -29,6 +29,7 @@ function LoginUserForm() {
       .post(`${import.meta.env.VITE_BACKEND_URL}/users/login`, formValues)
       .then((response) => {
         localStorage.setItem('authToken', response.data.token);
+        localStorage.setItem('userId', response.data.userId);
         displayLoginSuccessMessage();
         setFormValues(DEFAULT_FORM_VALUES);
         console.log('Login successful, token stored in localStorage');
