@@ -44,7 +44,7 @@ export default function MovieDetails() {
 
   if (!movie) {
     return (
-      <h2 style={{ color: 'white', textAlign: 'center' }}>Chargement...</h2>
+      <h2 style={{ color: 'white', textAlign: 'center' }}>Chargement du film...</h2>
     );
   }
 
@@ -57,7 +57,7 @@ export default function MovieDetails() {
         minHeight: '100vh',
       }}
     >
-      <Link to="/" style={{ color: '#61dafb', textDecoration: 'none' }}>
+      <Link to="/browse" style={{ color: '#b8aaff', textDecoration: 'none' }}>
         ← Retour à l'accueil
       </Link>
 
@@ -89,7 +89,11 @@ export default function MovieDetails() {
                 : 'N/A'}
             </p> */}
             <p>
-              <strong>Durée :</strong> {movie.duration} minutes
+              <strong>Durée :</strong> {(() => {
+                const h = Math.floor(movie.duration / 60);
+                const m = movie.duration % 60;
+                return h > 0 ? `${h}h${m > 0 ? ` ${m}min` : ''}` : `${m}min`;
+              })()}
             </p>
           </div>
           <p>
@@ -115,7 +119,7 @@ export default function MovieDetails() {
               onClick={async () => {
                 const token = localStorage.getItem('authToken');
                 if (!token) {
-                  setFeedback('Vous devez être connecté pour liker');
+                  setFeedback('Vous devez être connecté pour réagir.');
 
                   return;
                 }
@@ -163,7 +167,7 @@ export default function MovieDetails() {
               onClick={async () => {
                 const token = localStorage.getItem('authToken');
                 if (!token) {
-                  setFeedback('Vous devez être connecté pour disliker');
+                  setFeedback('Vous devez être connecté pour réagir.');
 
                   return;
                 }

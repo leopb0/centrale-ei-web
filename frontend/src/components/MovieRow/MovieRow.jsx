@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'react';
 import Movie from '../Movie/Movie';
 import './MovieRow.css';
 
-function MovieRow({ title, movies }) {
+function MovieRow({ title, movies, large }) {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -38,7 +38,7 @@ function MovieRow({ title, movies }) {
         )}
         <div className="movie-row-scroll" ref={scrollRef} onScroll={updateArrows}>
           {movies.map((movie) => (
-            <Movie key={movie.id} data={movie} />
+            <Movie key={movie.id} data={movie} large={large} />
           ))}
         </div>
         {canScrollRight && (

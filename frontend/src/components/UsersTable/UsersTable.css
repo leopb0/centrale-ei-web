@@ -1,11 +1,42 @@
-.users-table,
-.users-table td,
-.users-table th {
+.users-table {
   border-collapse: collapse;
-  border: 1px solid grey;
+  width: 100%;
+  color: white;
 }
 
-.users-table td,
 .users-table th {
-  padding: 10px;
+  background-color: #13132a;
+  padding: 11px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(108, 71, 255, 0.25);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9090b8;
+}
+
+.users-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.92rem;
+}
+
+.users-table tr:hover td {
+  background-color: rgba(108, 71, 255, 0.06);
+}
+
+.users-table button {
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  background-color: transparent;
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.5);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.users-table button:hover {
+  background-color: #ff6b6b;
+  color: white;
 }

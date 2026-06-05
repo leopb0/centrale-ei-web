@@ -1,16 +1,58 @@
 .Header-container {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(8, 8, 15, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(108, 71, 255, 0.18);
+  padding: 22px 40px;
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  padding: 5px;
-  font-size: calc(10px + 2vmin);
+  align-items: center;
+  justify-content: space-between;
 }
 
-.Header-container > :not(:last-child) {
-  margin-right: 10px;
+.Header-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #fff 0%, #b8aaff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+}
+
+.Header-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
 }
 
 .Link {
-  font-weight: 700;
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: #9090b8;
+  text-decoration: none;
+  padding: 7px 16px;
+  border-radius: 50px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.Link:hover {
   color: white;
+  background: rgba(108, 71, 255, 0.2);
+}
+
+.Link--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+}
+
+.Link--icon svg {
+  position: relative;
+  top: 3px;
 }

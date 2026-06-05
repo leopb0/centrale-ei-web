@@ -9,14 +9,14 @@ const DEFAULT_FORM_VALUES = {
   password: '',
 };
 
-function SignInUserForm() {
+function SignInUserForm({ onSuccessfulRegister }) {
   const [formValues, setFormValues] = useState(DEFAULT_FORM_VALUES);
 
   const [userSignInError, setUserSignInError] = useState(null);
   const [userSignInSuccess, setUserSignInSuccess] = useState(null);
 
   const displaySignInSuccessMessage = () => {
-    setUserSignInSuccess('User signed in successfully');
+    setUserSignInSuccess('Inscription réussie !');
     setTimeout(() => {
       setUserSignInSuccess(null);
     }, 3000);
@@ -33,9 +33,10 @@ function SignInUserForm() {
       .then((response) => {
         displaySignInSuccessMessage();
         setFormValues(DEFAULT_FORM_VALUES);
+        if (onSuccessfulRegister) onSuccessfulRegister();
       })
       .catch((error) => {
-        setUserSignInError('An error occured while signing in.');
+        setUserSignInError("Une erreur est survenue lors de l'inscription.");
         console.error(error);
       });
   };
@@ -55,7 +56,7 @@ function SignInUserForm() {
         />
         <input
           className="sign-in-input"
-          placeholder="First name"
+          placeholder="Prénom"
           value={formValues.firstname}
           onChange={(event) =>
             setFormValues({ ...formValues, firstname: event.target.value })
@@ -63,7 +64,7 @@ function SignInUserForm() {
         />
         <input
           className="sign-in-input"
-          placeholder="Last name"
+          placeholder="Nom"
           value={formValues.lastname}
           onChange={(event) =>
             setFormValues({ ...formValues, lastname: event.target.value })
@@ -71,7 +72,7 @@ function SignInUserForm() {
         />
         <input
           className="sign-in-input"
-          placeholder="Password"
+          placeholder="Mot de passe"
           type="password"
           value={formValues.password}
           onChange={(event) =>
@@ -79,7 +80,7 @@ function SignInUserForm() {
           }
         />
         <button className="sign-in-button" type="submit">
-          Sign in
+          S'inscrire
         </button>
       </form>
       {userSignInSuccess !== null && (

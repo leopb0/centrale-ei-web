@@ -1,20 +1,53 @@
-.add-user-form > :not(:last-child) {
-  margin-right: 10px;
+.add-user-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .add-user-input {
-  padding: 5px;
+  padding: 9px 16px;
+  font-size: 0.9rem;
+  background-color: #13132a;
+  border: 1px solid rgba(108, 71, 255, 0.25);
+  border-radius: 50px;
+  color: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.add-user-input:focus {
+  border-color: #6c47ff;
+}
+
+.add-user-input::placeholder {
+  color: #5a5a7a;
 }
 
 .add-user-button {
+  padding: 9px 20px;
+  font-size: 0.9rem;
+  background-color: #6c47ff;
+  color: white;
+  border: none;
+  border-radius: 50px;
   cursor: pointer;
-  padding: 5px;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.add-user-button:hover {
+  background-color: #7d5cff;
 }
 
 .user-creation-success {
-  color: green;
+  color: #6fcf97;
+  margin-top: 6px;
+  font-size: 0.9rem;
 }
 
 .user-creation-error {
-  color: red;
+  color: #ff6b6b;
+  margin-top: 6px;
+  font-size: 0.9rem;
 }

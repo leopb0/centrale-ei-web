@@ -51,7 +51,7 @@ router.get('/', async function (req, res) {
       // Si l'utilisateur n'a rien likÃ©, on renvoie les films les plus populaires par dÃ©faut
       const popularMovies = await movieRepository.find({
         order: { popularity: 'DESC' },
-        take: 10,
+        take: 50,
       });
 
       return res.json({ recommendations: popularMovies });

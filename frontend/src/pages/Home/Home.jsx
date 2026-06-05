@@ -1,103 +1,52 @@
-import { useEffect, useState } from 'react';
-import logo from './logo.svg';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import MovieRow from '../../components/MovieRow/MovieRow';
+import { useFetchLikedMovies } from '../Liked/useFetchLikedMovies';
 import './Home.css';
-import { useFetchFilms } from './recup_liste_films';
-import Movie from '../../components/Movie/Movie';
 
 function Home() {
-  // 1. L'état pour ce qui est tapé en direct dans la barre
-  const [Film, setFilm] = useState('');
-  const [sorting_criterion, SetSorting_criterion] = useState('popularity');
+  const [allMovies, setAllMovies] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
 
-  const UpdateSortedMovies = () => {
-    SetSorting_criterion(document.getElementById('film-criterion').value);
-  };
+  const userId = localStorage.getItem('userId');
+  const { likedMovies } = useFetchLikedMovies();
 
-  const getSortedMovies = () => {
-    let sorting_function;
-    if (sorting_criterion === 'popularity') {
-      sorting_function = (a, b) => b.popularity - a.popularity; //needs to be changed
-    } else if (sorting_criterion === 'release_date') {
-      sorting_function = (a, b) =>
-        new Date(b.releaseYear) - new Date(a.releaseYear);
-    } else if (sorting_criterion === 'rating') {
-      sorting_function = (a, b) => b.rating - a.rating;
-    } else if (sorting_criterion === 'alphabetical') {
-      sorting_function = (a, b) => a.name.localeCompare(b.name);
-    } else if (sorting_criterion === 'duration') {
-      sorting_function = (a, b) => b.duration - a.duration;
-    }
+  useEffect(() => {
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/movies`)
+      .then((res) => setAllMovies(res.data))
+      .catch(console.error);
+  }, []);
 
-    return [...movies].sort(sorting_function);
-  };
+  useEffect(() => {
+    if (!userId) return;
+    axios
+      .get(`${import.meta.env.VITE_BACKEND_URL}/users/${userId}/recommendations`)
+      .then((res) => setRecommendations(res.data.recommendations))
+      .catch(console.error);
+  }, [userId]);
 
-  // 2. L'état pour le mot-clé validé (quand on clique sur le bouton)
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // 3. On passe ce mot-clé validé à notre moteur de recherche
-  const { movies } = useFetchFilms(searchTerm);
-
-  // 4. La fonction déclenchée par le clic sur le bouton
-  const lancerRecherche = () => {
-    console.log('🚨 BOUTON CLIQUÉ ! Lancement de la recherche pour :', Film);
-    setSearchTerm(Film);
-  };
-  const liste_films = getSortedMovies().map((movie) => (
-    <Movie key={movie.id} data={movie} />
-  ));
+  const trending = [...allMovies].sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
+  const latest = [...allMovies].sort((a, b) => (b.releaseYear || 0) - (a.releaseYear || 0));
+  const bestRated = [...allMovies].sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Recherche de films</h1>
-
-        {/* --- ZONE DE RECHERCHE --- */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-          <input
-            required
-            type="text"
-            placeholder="Ex: Batman, Avatar..."
-            value={Film}
-            onChange={(event) => setFilm(event.target.value)}
-            style={{ padding: '5px', fontSize: '16px' }}
-          />
-          <button
-            onClick={lancerRecherche}
-            style={{ padding: '5px 10px', fontSize: '16px', cursor: 'pointer' }}
-          >
-            Rechercher
-          </button>
-        </div>
-
-        <label for="film-criterion">Critère de tri</label>
-        <select
-          id="film-criterion"
-          name="film-criterion"
-          onChange={UpdateSortedMovies}
-        >
-          <option value="popularity">Popularité</option>
-          <option value="release_date">Date de sortie</option>
-          <option value="rating">Note</option>
-          <option value="alphabetical">Alphabétique</option>
-          <option value="duration">Durée</option>
-        </select>
-
-        {/* --- AFFICHAGE DES RÉSULTATS --- */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            width: '100%',
-          }}
-        >
-          {movies.length > 0 ? (
-            liste_films
-          ) : (
-            <p>Aucun film ne correspond à cette recherche.</p>
-          )}
-        </div>
-      </header>
+    <div className="Home-container">
+      <MovieRow title="Tendances" movies={trending} />
+      {userId ? (
+        <MovieRow title="Pour vous" movies={recommendations} />
+      ) : (
+        <p className="Home-login-hint">Connectez-vous pour voir des recommandations personnalisées.</p>
+      )}
+      <MovieRow title="Mieux notés" movies={bestRated} />
+      {userId && (
+        <MovieRow
+          title="Vos coups de cœur"
+          movies={likedMovies}
+          large={likedMovies.length < 5}
+        />
+      )}
+      <MovieRow title="Sorties récentes" movies={latest} />
     </div>
   );
 }

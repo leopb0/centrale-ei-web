@@ -1,11 +1,29 @@
 .Layout-container {
-  background-color: #282c34;
+  background-color: #08080f;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   color: white;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Purple radial glow — Kosmic-style background orb */
+.Layout-container::before {
+  content: '';
+  position: fixed;
+  top: -320px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1100px;
+  height: 1100px;
+  background: radial-gradient(circle, rgba(108, 71, 255, 0.18) 0%, transparent 65%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .Layout-content {
-  padding: 20px;
+  position: relative;
+  z-index: 1;
+  padding: 0;
 }

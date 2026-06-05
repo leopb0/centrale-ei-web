@@ -1,20 +1,25 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import './Movie.css';
 
-function Movie({ data }) {
+function Movie({ data, large }) {
+  const cardWidth = large ? '300px' : '200px';
+  const cardHeight = large ? '460px' : '380px';
+  const imgHeight = large ? '340px' : '270px';
+
   return (
-    // Le Link va rediriger l'utilisateur vers /movie/1, /movie/2, etc.
     <Link to={`/movie/${data.id}`} style={{ textDecoration: 'none' }}>
       <div
+        className="movie-card"
         style={{
-          border: '1px solid #ddd',
-          borderRadius: '8px',
+          border: '1px solid rgba(108, 71, 255, 0.2)',
+          borderRadius: '12px',
           margin: '10px',
-          width: '250px',
-          height: '450px',
+          width: cardWidth,
+          height: cardHeight,
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: '#282c34',
+          backgroundColor: '#13132a',
           color: 'white',
           textAlign: 'center',
           cursor: 'pointer',
@@ -27,7 +32,7 @@ function Movie({ data }) {
             alt={`Affiche de ${data.name}`}
             style={{
               width: '100%',
-              height: '320px',
+              height: imgHeight,
               borderRadius: '8px 8px 0 0',
               objectFit: 'cover',
               flexShrink: 0,
